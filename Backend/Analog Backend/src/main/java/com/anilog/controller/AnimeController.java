@@ -15,7 +15,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/anime")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "https://anilog-omega.vercel.app"
+})
 public class AnimeController {
 
     private final AnimeService animeService;
