@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import "./index.css";
 
+// Uses Vercel's VITE_API_URL in production and localhost during development.
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:8071"}/api/anime`;
+
 const seedAnime = [
   { id: 1, malId: 52299, title: "Solo Leveling", year: 2024, score: 8.7, episodes: 12, genre: "Action", color: "poster-purple", image: "https://cdn.myanimelist.net/images/anime/1801/142390l.jpg" },
   { id: 2, malId: 21, title: "One Piece", year: 1999, score: 9.0, episodes: 1000, genre: "Adventure", color: "poster-blue", image: "https://cdn.myanimelist.net/images/anime/6/73245l.jpg" },
@@ -135,7 +138,7 @@ function App() {
 
     async function loadSavedAnime() {
       try {
-        const response = await fetch("http://localhost:8071/api/anime");
+        const response = await fetch(API_BASE_URL);
         if (!response.ok) throw new Error(`Could not load saved anime: ${response.status}`);
         const records = await response.json();
         if (!Array.isArray(records) || cancelled) return;
@@ -196,7 +199,7 @@ function App() {
 
       try {
         const response = await fetch(
-          `http://localhost:8071/api/anime/search?q=${encodeURIComponent(query)}`,
+          `${API_BASE_URL}/search?q=${encodeURIComponent(query)}`,
           { signal: controller.signal }
         );
 
@@ -306,7 +309,7 @@ function App() {
 
     if (anime.dbId) {
       try {
-        const response = await fetch(`http://localhost:8071/api/anime/${anime.dbId}/progress`, {
+        const response = await fetch(`${API_BASE_URL}/${anime.dbId}/progress`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ watchedEpisodes: clamped }),
@@ -334,7 +337,7 @@ function App() {
       let savedRecord;
 
       if (selectedAnime.dbId) {
-        const response = await fetch(`http://localhost:8071/api/anime/${selectedAnime.dbId}/status`, {
+        const response = await fetch(`${API_BASE_URL}/${selectedAnime.dbId}/status`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: uiToApiStatus[status] }),
@@ -343,7 +346,7 @@ function App() {
         savedRecord = await response.json();
 
         if (status === "Watched") {
-          const progressResponse = await fetch(`http://localhost:8071/api/anime/${selectedAnime.dbId}/progress`, {
+          const progressResponse = await fetch(`${API_BASE_URL}/${selectedAnime.dbId}/progress`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ watchedEpisodes }),
@@ -352,7 +355,7 @@ function App() {
           savedRecord = await progressResponse.json();
         }
       } else {
-        const response = await fetch("http://localhost:8071/api/anime", {
+        const response = await fetch(API_BASE_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -369,7 +372,7 @@ function App() {
 
         // The backend avoids duplicate malIds and preserves an existing status.
         if (savedRecord.status !== uiToApiStatus[status]) {
-          const statusResponse = await fetch(`http://localhost:8071/api/anime/${savedRecord.id}/status`, {
+          const statusResponse = await fetch(`${API_BASE_URL}/${savedRecord.id}/status`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: uiToApiStatus[status] }),
@@ -379,7 +382,7 @@ function App() {
         }
 
         if (status === "Watched" && savedRecord.watchedEpisodes !== watchedEpisodes) {
-          const progressResponse = await fetch(`http://localhost:8071/api/anime/${savedRecord.id}/progress`, {
+          const progressResponse = await fetch(`${API_BASE_URL}/${savedRecord.id}/progress`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ watchedEpisodes }),
@@ -824,7 +827,7 @@ function App() {
                   onClick={async () => {
                     try {
                       if (selectedAnime.dbId) {
-                        const response = await fetch(`http://localhost:8071/api/anime/${selectedAnime.dbId}`, {
+                        const response = await fetch(`${API_BASE_URL}/${selectedAnime.dbId}`, {
                           method: "DELETE",
                         });
                         if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
